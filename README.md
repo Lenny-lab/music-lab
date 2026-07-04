@@ -1,4 +1,4 @@
-# Echo Chamber · 回声室 (v2)
+# Echo Chamber · 回声室 (v3)
 
 你的三十下,一首你自己的曲子。本地算力 + 算法作曲。
 
@@ -60,21 +60,23 @@ node serve.js          # 起本地服务 http://127.0.0.1:8766/
 - 弦乐(三 sawtooth detune + sub bass)
 
 ### 8. 多格式导出
-- **PNG**:1080×1080 星座图(可发朋友圈)
-- **SVG**:手写五线谱(可在浏览器或矢量编辑器打开)
-- **WAV**:OfflineAudioContext 渲染(可在任何播放器播放)
-- **MID**:标准 MIDI 文件(可在 GarageBand / Logic / FL Studio 打开)
+- **保存图(PNG)**:1080×1080 星座图(可发朋友圈)
+- **轨迹(SVG)**:30 个触点按顺序连成平滑 bezier 曲线,带序号、起手点光环、渐变描边
+- **乐谱(SVG)**:手写五线谱,多 stave,自动分组(8 音/行),高音谱号 + 4/4 拍号 + 终止线 + 升降号 + 加线
+- **.mp3**:用 `vendor/lame.min.js` 本地编码,128kbps,可在任何播放器播放
+- **.mid**:标准 MIDI 文件,可在 GarageBand / Logic / FL Studio 打开
 
 ## 文件
 
 - `index.html` - 入口
 - `style.css` - 样式
 - `app.js` - 主交互逻辑
-- `music.js` - 音乐理论 + 优化 + 导出
+- `music.js` - 音乐理论 + 优化 + 五线谱 + 轨迹渲染 + MP3/MIDI 编码
+- `vendor/lame.min.js` - MP3 编码器(本地离线可用,CDN 兜底)
 - `serve.js` - 本地 server
 
 ## demo
 
 - `?demo=30` - 自动点 30 下
-- `?demo=30&sheet=1` - 完成后自动展示乐谱
-- `?demo=30` 后缀不同端口都 OK
+- `?demo=30&fast=1` - 加速 demo(60ms 间隔,适合截图验证)
+- 完成后可在结果页选任意一种导出
