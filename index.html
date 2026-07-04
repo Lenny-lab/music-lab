@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08080c">
+  <meta name="description" content="Echo Chamber — 你的三十下,一首你自己的曲子">
+  <title>Echo Chamber · 回声室</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <canvas id="stage" aria-hidden="true"></canvas>
+
+  <main class="app">
+    <!-- COVER -->
+    <section class="screen cover" id="screenCover">
+      <div class="cover-eyebrow">ECHO CHAMBER</div>
+      <h1 class="cover-title">
+        <span>三十下</span>
+        <span>一首你自己的曲子</span>
+      </h1>
+
+      <div class="instruments" id="instruments" role="radiogroup" aria-label="选择音色">
+        <button class="ins-btn" data-ins="piano" aria-label="钢琴">
+          <span class="ins-dot" style="background:#f4e9d4"></span>
+          <span class="ins-name">钢琴</span>
+        </button>
+        <button class="ins-btn" data-ins="musicbox" aria-label="八音盒">
+          <span class="ins-dot" style="background:#b8d4ff"></span>
+          <span class="ins-name">八音盒</span>
+        </button>
+        <button class="ins-btn" data-ins="pad" aria-label="Pad">
+          <span class="ins-dot" style="background:#e0a8c8"></span>
+          <span class="ins-name">Pad</span>
+        </button>
+        <button class="ins-btn" data-ins="strings" aria-label="弦乐">
+          <span class="ins-dot" style="background:#ffd6a0"></span>
+          <span class="ins-name">弦乐</span>
+        </button>
+      </div>
+
+      <div class="cover-cta" id="coverCta">轻触屏幕 · 开始</div>
+
+      <div class="device-hint" id="deviceHint"></div>
+    </section>
+
+    <!-- COMPOSE HUD -->
+    <section class="screen hud hud-compose" id="screenCompose" hidden>
+      <div class="hud-top">
+        <div class="hud-eyebrow">ECHO CHAMBER · <span id="insLabel">钢琴</span></div>
+        <div class="hud-hint">触摸屏幕 · 上下决定音高</div>
+      </div>
+      <div class="hud-bottom">
+        <div class="progress"><span id="progressCount">0</span> <em>/ 30</em></div>
+      </div>
+    </section>
+
+    <!-- PERFORM HUD -->
+    <section class="screen hud hud-perform" id="screenPerform" hidden>
+      <div class="hud-top">
+        <div class="hud-eyebrow">正在演奏 · 你的曲子</div>
+        <div class="hud-hint">第 <span id="performCount">1</span> / 30</div>
+      </div>
+    </section>
+
+    <!-- RESULT -->
+    <section class="screen result" id="screenResult" hidden>
+      <div class="result-top">
+        <div class="result-eyebrow">你的第 <span id="resultNum">1</span> 首曲子 · <span id="keyLabel">C</span></div>
+        <div class="result-date" id="resultDate"></div>
+      </div>
+      <div class="result-name">
+        <input id="nameInput" type="text" maxlength="24" placeholder="给这首曲子起个名" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-primary" id="exportImg">保存图</button>
+        <button class="btn" id="exportTrack">轨迹</button>
+        <button class="btn" id="exportSheet">乐谱</button>
+        <button class="btn" id="exportMp3">.mp3</button>
+        <button class="btn" id="exportMidi">.mid</button>
+      </div>
+      <div class="result-footer" id="restart">轻触屏幕 · 再来一首</div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script src="music.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
