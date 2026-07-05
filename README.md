@@ -1,82 +1,99 @@
-# Echo Chamber · 回声室 (v3)
+# Echo Chamber · 回声室
 
-你的三十下,一首你自己的曲子。本地算力 + 算法作曲。
+> 你的三十下,一首你自己的曲子。  本地算法作曲,Web Audio 实时合成 + 多格式导出。
 
 ## 怎么跑
 
 ```bash
-node serve.js          # 起本地服务 http://127.0.0.1:8766/
+node serve.js
+# 浏览器打开 http://127.0.0.1:8766/
 ```
 
 ## 玩法
 
-- 进入页面,选一个音色(钢琴 / 八音盒 / Pad / 弦乐)
-- 任意点击 30 次 — 每次位置决定音高(顶部高音,底部低音)
-- 听自己的曲子被回放(经过算法优化)
-- 命名 / 保存 / 分享 / 再来一首
+1. 进入页面,选一个音色(钢琴 / 八音盒 / Pad / 弦乐)
+2. 在屏幕上点 30 下 — 每次位置决定音高(顶部高音,底部低音)
+3. 听自己的曲子被回放(经过算法优化:humanize / harmony / 末句收尾)
+4. 命名 / 保存 / 分享 / 再来一首
 
-## 技术优化(v2 升级)
+## 演示模式
 
-### 1. Humanization · 人性化
-每个音自动加:
-- micro-timing offset (±15-28ms,基于设备)
-- velocity 0.65-1.0 浮动(首音重、末音轻、中间起伏)
-- duration 0.4-1.8s 基于音间距
+```
+?demo=30            30 下自动 tap,每下 1.2s
+?demo=30&fast=1     快速 demo,每下 60ms
+?sheet=1            完成后直接显示乐谱 SVG(覆盖全屏)
+?track=1            完成后直接显示轨迹 SVG
+```
 
-**效果**:从"电子节拍器"变成"被弹"的琴键。
+组合示例:`?demo=30&fast=1&sheet=1`
 
-### 2. 调性检测 · Krumhansl-Schmuckler
-自动检测 30 音的最可能调性(大调/小调)。
+## 文件结构
 
-### 3. 智能和声
-基于调性自动加:
-- **Pad**:每个用户音下方加一个三和弦长音
-- **Bass walking**(强设备):每 5 个音走一个 bass step
+```
+index.html          入口
+style.css           样式
+serve.js            本地 HTTP server
 
-**效果**:从"单声部旋律"变成"有伴奏的小曲"。
+src/
+  main.js           主控:状态机 + DOM + 演奏调度 + 演示
+  util.js           基础工具:频率/MIDI 转换、设备检测、文本格式化
+  theory.js         音乐理论:调性检测、调内音吸附、和弦模板
+  composer.js       自动编曲:humanize / harmony / expand / structure
+  synth.js          音色库 + 实时/离线音频调度
+  render.js         Canvas 渲染:背景、舞台、halo
+  svg.js            SVG 渲染:五线谱、轨迹连线
+  export.js         文件导出:PNG / SVG / MP3 / MIDI
 
-### 4. 算法扩展
-- **邻音填充**:在间隔 > 600ms 的两个音之间加 passing tone
-- **末句收尾**(强设备):自动加 4 个音级进到主音
+vendor/
+  lame.min.js       MP3 编码器(本地离线,CDN 兜底)
 
-**效果**:从 ~10s 延展到 ~30s。
+LICENSE             MIT
+```
 
-### 5. 结构化分句
-30 音按时间间隔自动分成 4 个乐句,每句有 micro-crescendo。
+## 技术要点
+
+### 1. 演奏调度(Web Audio 精确时间)
+每个 note 在它自己的相对时间 `t` 处调度,而不是固定间隔的 `setTimeout` 链。
+这样 melody / harmony / expansion 三层在 audio context 内部严格同步,误差在 sample 级。
+
+### 2. Humanize
+微 timing offset (±15-28ms) + velocity 起伏(首音重/末音轻/中段拱形) + duration 跟间距联动。
+让"被播的电子节拍器"变成"被弹的琴键"。
+
+### 3. 调性检测
+Krumhansl-Schmuckler:把 30 音折叠到 12 个 pitch class,跟大调/小调模板做相关性打分,选最大者。
+
+### 4. 智能和声
+- **Pad**:每个旋律音下方加一个低八度长音(三和弦 root)
+- **Bass walking**(high 档):每 5 个音走一个 bass step
+- 调内音吸附保证 pad 听起来"在调里"
+
+### 5. 算法扩展
+- **邻音填充**:间隔 > 600ms 且音高差 > 3 半音,中间加一个 passing tone
+- **末句收尾**(high 档):把最后一个音级进到主音,4 步走完
 
 ### 6. 设备算力感知
-用 `navigator.hardwareConcurrency` + `deviceMemory` 检测:
-- **High**(4-5 分):完整算法链(humanization + harmony + expansion + walking bass)
-- **Mid**(2-3 分):humanization + harmony(无 expansion)
-- **Low**(0-1 分):只跑 humanization
+- **High**(4-5 分):完整算法链
+- **Mid**(2-3 分):跳过扩展
+- **Low**(≤1 分):只做 humanize
 
-**全程本地运行,不联网。**
-
-### 7. 多音色
-4 种 Web Audio 实时合成音色:
-- 钢琴(triangle + sine 泛音 + sub bass)
-- 八音盒(明亮 sine + 高泛音,长 release)
-- Pad(双 sawtooth detune,长 attack/release)
-- 弦乐(三 sawtooth detune + sub bass)
+### 7. 4 种音色合成
+钢琴(triangle + sine 泛音 + sub)、八音盒(明亮 sine + 高泛音 + 长 release)、
+Pad(双 sawtooth detune + 长 attack)、弦乐(三 sawtooth detune + sub)。
+都是实时 Web Audio 合成,零外部音源。
 
 ### 8. 多格式导出
-- **保存图(PNG)**:1080×1080 星座图(可发朋友圈)
-- **轨迹(SVG)**:30 个触点按顺序连成平滑 bezier 曲线,带序号、起手点光环、渐变描边
-- **乐谱(SVG)**:手写五线谱,多 stave,自动分组(8 音/行),高音谱号 + 4/4 拍号 + 终止线 + 升降号 + 加线
-- **.mp3**:用 `vendor/lame.min.js` 本地编码,128kbps,可在任何播放器播放
-- **.mid**:标准 MIDI 文件,可在 GarageBand / Logic / FL Studio 打开
+- **PNG**(1080×1080 星座图)
+- **轨迹 SVG**(30 个触点按序连成平滑 bezier,带编号、起手点光环、渐变描边)
+- **乐谱 SVG**(手写五线谱,多 stave,8 音/行,高音谱号 + 4/4 拍号 + 终止线 + 升降号 + 加线)
+- **MP3**(OfflineAudioContext 渲染 + lamejs 本地编码,128kbps)
+- **MIDI**(format 0,带调号、拍号、Program Change,可在 GarageBand / Logic / FL Studio 打开)
 
-## 文件
+## 浏览器兼容
 
-- `index.html` - 入口
-- `style.css` - 样式
-- `app.js` - 主交互逻辑
-- `music.js` - 音乐理论 + 优化 + 五线谱 + 轨迹渲染 + MP3/MIDI 编码
-- `vendor/lame.min.js` - MP3 编码器(本地离线可用,CDN 兜底)
-- `serve.js` - 本地 server
+需要支持 ES Modules(Chrome 89+ / Firefox 108+ / Safari 16.4+)、
+Web Audio API、OfflineAudioContext、`<canvas>`、`<svg>`。
 
-## demo
+## 许可
 
-- `?demo=30` - 自动点 30 下
-- `?demo=30&fast=1` - 加速 demo(60ms 间隔,适合截图验证)
-- 完成后可在结果页选任意一种导出
+MIT

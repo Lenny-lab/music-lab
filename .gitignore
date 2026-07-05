@@ -1,7 +1,11 @@
 ﻿node_modules/
 *.log
 .DS_Store
-_archive_oneTap/
+_archive_*/
+_archive_v3/
 screens/
-_archive_*
 _test-*
+.t*.json
+.p*.json
+SoftwareCopyright-Skill-main/
+.playwright-mcp/
